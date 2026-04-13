@@ -5,34 +5,21 @@
   <img src="./readme/mobile.png" height="300">
 </p>
 
-`myboard` is a customized fork of [`zashboard`](https://github.com/Zephyruso/zashboard) focused on clearer proxy-group and node-group presentation for Mihomo/OpenClash style configurations.
+`myboard` 是基于 [`zashboard`](https://github.com/Zephyruso/zashboard) 修改的中文自用版本，主要针对 Mihomo / OpenClash 配置做了更清晰的策略组、节点组展示。
 
-## Highlights
+## 功能特点
 
-- Renamed the original `Proxies` view to `Policy Groups`
-- Split high-level strategy groups and region-based node groups into separate tabs
-- Added aggregated `Node Groups` buckets such as `美国`, `香港`, `日本`
-- Added a fallback bucket renamed to `兜底策略`
-- Added current-path summary display for grouped node buckets
+- 将原来的 `代理` 视图重命名为 `策略组`
+- 将高层策略组和地区节点组拆分为独立分页
+- 支持将 `美国`、`香港`、`日本` 等地区组聚合到 `节点组`
+- 新增 `兜底策略` 分组展示
+- 节点组支持显示当前实际使用路径
 
-## **Requirement**
+## 仓库地址
 
-Browser support
+- GitHub: [guo199169/myboard](https://github.com/guo199169/myboard)
 
-- Chrome 111 (released March 2023)
-- Firefox 128 (released July 2024)
-- Safari 16.4 (released March 2023)
-- Not supported on iOS 16.4 jailbroken version.
-
-## **Online**
-
-This project is a self-hosted fork. Build and deploy it from this repository:
-
-- [myboard repository](https://github.com/guo199169/myboard)
-
-## **Download**
-
-You can build the panel locally:
+## 本地运行
 
 ```bash
 pnpm install
@@ -40,55 +27,38 @@ pnpm build
 pnpm preview
 ```
 
-Or use the generated `dist/` directory for deployment.
+开发模式：
 
-## **Docker Setup**
+```bash
+pnpm dev
+```
 
-To run `myboard` via Docker, build your own image from this fork or deploy the built static files with Nginx/Caddy.
+## 部署说明
 
-## Tips
+构建完成后，直接部署 `dist/` 目录即可。  
+可以放到任意静态站点环境中，例如：
 
-1. The connection table can be dragged with the left mouse button, and right-clicking can copy cell content.
-2. Right-clicking on a node / node group card will perform a speedtest for the node / node group.
-3. The policy-group sorting is based on the node order in the GLOBAL group. In Mihomo, it follows the configuration file order, while in sing-box, route.final is placed first, with the rest following the configuration file order. If you need custom ordering, you can specify the order by overriding the GLOBAL group.
-4. The dashboard supports PWA (Progressive Web App), which can provide a native app-like experience on mobile devices through "Add to Home Screen".
-5. The dashboard's upgrade button and auto-upgrade functionality require proper configuration of the core's UI download path ([mihomo](https://wiki.metacubex.one/config/general/#_9) | [sing-box](https://sing-box.sagernet.org/configuration/experimental/clash-api/#external_ui_download_url)), otherwise clicking update may result in updating to the core's default panel.
+- Nginx
+- Caddy
+- Cloudflare Pages
+- GitHub Pages
 
-## 提示
+## 当前自定义内容
 
-1. 连接表格可被鼠标左键拖动，右键可复制单元格内容。
-2. 右键点击节点/节点组卡片可对节点/节点组进行测速。
-3. 面板的策略组排序是根据GLOBAL组中的节点顺序排序的，在Mihomo中会是按配置文件的顺序，在sing-box中会把route.final放到第一位，其余按照配置文件顺序，如果你需要自定义顺序，可通过覆盖GLOBAL组指定顺序
-4. 面板支持PWA（Progressive Web App），可以在移动设备上通过"添加到主屏幕"获得类原生app的体验
-5. 面板的更新按钮和自动更新功能需要正确的配置核心的ui下载路径 ([mihomo](https://wiki.metacubex.one/config/general/#_9) | [sing-box](https://sing-box.sagernet.org/configuration/experimental/clash-api/#external_ui_download_url)), 否则可能会在点击更新后更新为核心默认面板
+- `策略组` 中展示高层策略入口
+- `节点组` 中展示地区 / 底层节点分组
+- 地区节点组支持聚合展示
+- `兜底策略` 支持单独归类
 
-## URL params format
+## 使用说明
 
-#### basic example
+1. 打开面板后，在 `策略组` 中查看高层策略。
+2. 在 `节点组` 中查看地区节点池。
+3. 展开地区分组后，可以看到对应的子分组和当前路径。
+4. 右键节点或节点组卡片可进行测速。
 
-http://host:port/#/setup?hostname=ipordomain&port=9090&secret=123456
+## 说明
 
-1. **`http` / `https`**
-   - Determines the protocol (`http` or `https`).
-   - Default: current page protocol
+这个仓库是个人修改版，不再保留原项目 README 中的在线地址、官方发行包、赞助说明等内容。若需查看原始项目，请前往：
 
-2. **`hostname`**
-   - The Clash API's IP or domain.
-
-3. **`port`**
-   - The Clash API port.
-
-4. **`secondaryPath`**
-   - Optional path appended to the base URL.
-   - Default: An empty string.
-
-5. **`secret`**
-   - Password for authentication.
-
-6. **`disableUpgradeCore`**
-   - Set '1' to hide upgrade core button
-
-7. **`disableTunMode`**
-   - Set '1' to hide tun switch
-
-### I code just for fun, not for money. If you really want to donate, please consider donating to [UNICEF](https://www.unicef.org/) to help hungry children.
+- [Zephyruso/zashboard](https://github.com/Zephyruso/zashboard)
