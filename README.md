@@ -15,33 +15,68 @@
 - 新增 `兜底策略` 分组展示
 - 节点组支持显示当前实际使用路径
 
-## 仓库地址
+## 安装部署
 
-- GitHub: [guo199169/myboard](https://github.com/guo199169/myboard)
-
-## 本地运行
+### 方式一：Docker 一键部署（推荐）
 
 ```bash
+docker run -d -p 8080:80 ghcr.io/zephyruso/zashboard:latest
+```
+
+然后访问 `http://your-ip:8080`
+
+### 方式二：下载预构建包
+
+直接下载并解压部署：
+
+```bash
+# 下载最新版
+wget https://github.com/guo199169/myboard/releases/latest/download/dist.zip
+unzip dist.zip
+```
+
+然后将 `dist` 目录部署到任意 Web 服务器（Nginx、Caddy 等）。
+
+### 方式三：源码构建
+
+```bash
+# 克隆仓库
+git clone git@github.com:guo199169/myboard.git
+cd myboard
+
+# 安装依赖
 pnpm install
+
+# 构建
 pnpm build
+
+# 预览
 pnpm preview
 ```
 
-开发模式：
+## 配置使用
 
-```bash
-pnpm dev
+部署完成后，访问面板时需要在 URL 中填写 Clash API 的连接信息：
+
+```
+http://your-ip:port/#/setup?hostname=你的IP&port=9090&secret=你的密码
 ```
 
-## 部署说明
+参数说明：
+- `hostname` - Clash API 的 IP 或域名
+- `port` - Clash API 端口（默认 9090）
+- `secret` - Clash API 密码（可选）
 
-构建完成后，直接部署 `dist/` 目录即可。  
-可以放到任意静态站点环境中，例如：
+## 部署环境
 
-- Nginx
-- Caddy
+构建后的 `dist/` 是纯静态文件，可部署到：
+
+- Nginx / Caddy
+- Docker
 - Cloudflare Pages
 - GitHub Pages
+- Vercel
+- 任意 Web 服务器
 
 ## 当前自定义内容
 
