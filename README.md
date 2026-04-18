@@ -26,7 +26,7 @@
 
 ```bash
 # 克隆仓库
-git clone https://github.com/guo199169/myboard.git
+git clone https://github.com/PaoGe666/myboard.git
 cd myboard
 
 # 构建镜像
@@ -42,7 +42,7 @@ docker run -d --name myboard -p 8080:80 myboard:latest
 
 ```bash
 # 克隆仓库
-git clone https://github.com/guo199169/myboard.git
+git clone https://github.com/PaoGe666/myboard.git
 cd myboard
 
 # 安装依赖
