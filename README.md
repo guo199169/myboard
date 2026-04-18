@@ -5,7 +5,7 @@
   <img src="./readme/mobile.png" height="300">
 </p>
 
-`myboard` 是基于 [`zashboard`](https://github.com/Zephyruso/zashboard) 修改的中文自用版本，主要针对 Mihomo / OpenClash 配置做了更清晰的策略组、节点组展示。
+`myboard` 是基于 [`zashboard`](https://github.com/Zephyruso/zashboard) 修改的中文自用版本，主要针对 Mihomo / OpenClash 配置做了更清晰的策略组、节点组、订阅提供商与图标展示。
 
 ## 功能特点
 
@@ -14,34 +14,35 @@
 - 支持将 `美国`、`香港`、`日本` 等地区组聚合到 `节点组`
 - 新增 `兜底策略` 分组展示
 - 节点组支持显示当前实际使用路径
+- 关闭代理提供商后，相关节点不会再被策略组偷偷继续使用
+- 策略组、节点组、二级菜单和侧边栏支持 `无可用节点 / 异常组数` 告警提示
+- 新增 `优先使用品牌 SVG 图标源` 开关，支持在品牌图标源与 YAML / 自定义图标之间切换
+- 品牌图标源加载失败时，会自动回退到原始图标配置
+- 设置导入支持 URL / 本地 JSON 的失败兜底提示，导出文件名统一为 `zashboard-settings.json`
 
 ## 安装部署
 
-### 方式一：Docker 一键部署（推荐）
+### 方式一：Docker 构建部署（推荐）
 
 ```bash
-docker run -d -p 8080:80 ghcr.io/zephyruso/zashboard:latest
+# 克隆仓库
+git clone https://github.com/guo199169/myboard.git
+cd myboard
+
+# 构建镜像
+docker build -t myboard:latest .
+
+# 启动容器
+docker run -d --name myboard -p 8080:80 myboard:latest
 ```
 
 然后访问 `http://your-ip:8080`
 
-### 方式二：下载预构建包
-
-直接下载并解压部署：
-
-```bash
-# 下载最新版
-wget https://github.com/guo199169/myboard/releases/latest/download/dist.zip
-unzip dist.zip
-```
-
-然后将 `dist` 目录部署到任意 Web 服务器（Nginx、Caddy 等）。
-
-### 方式三：源码构建
+### 方式二：源码构建
 
 ```bash
 # 克隆仓库
-git clone git@github.com:guo199169/myboard.git
+git clone https://github.com/guo199169/myboard.git
 cd myboard
 
 # 安装依赖
@@ -53,6 +54,12 @@ pnpm build
 # 预览
 pnpm preview
 ```
+
+构建完成后，将 `dist/` 目录部署到任意 Web 服务器（Nginx、Caddy 等）即可。
+
+### 方式三：GitHub Pages
+
+仓库已内置 GitHub Pages 工作流，推送到 `main` 后会自动构建并发布 `dist/`。
 
 ## 配置使用
 
@@ -84,16 +91,22 @@ http://your-ip:port/#/setup?hostname=你的IP&port=9090&secret=你的密码
 - `节点组` 中展示地区 / 底层节点分组
 - 地区节点组支持聚合展示
 - `兜底策略` 支持单独归类
+- 支持代理提供商开关，并在关闭后自动从策略选择与路径解析中排除对应节点
+- 策略组 / 节点组支持区分 `无可用节点` 与 `部分异常`
+- 侧边栏与二级菜单同步显示告警数量
+- 支持品牌 SVG 图标源开关，默认开启
+- 自定义 / YAML 图标与品牌图标支持失败回退
 
 ## 使用说明
 
 1. 打开面板后，在 `策略组` 中查看高层策略。
 2. 在 `节点组` 中查看地区节点池。
-3. 展开地区分组后，可以看到对应的子分组和当前路径。
+3. 若关闭某个代理提供商，相关节点会自动从策略可选项与实际路径中移除。
 4. 右键节点或节点组卡片可进行测速。
+5. 可在 `设置 -> 策略组` 中切换品牌 SVG 图标源。
 
 ## 说明
 
-这个仓库是个人修改版，不再保留原项目 README 中的在线地址、官方发行包、赞助说明等内容。若需查看原始项目，请前往：
+这个仓库是个人修改版，不再保留原项目 README 中的在线地址、官方 Docker 镜像、赞助说明等内容。若需查看原始项目，请前往：
 
 - [Zephyruso/zashboard](https://github.com/Zephyruso/zashboard)
