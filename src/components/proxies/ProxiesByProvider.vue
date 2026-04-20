@@ -36,10 +36,24 @@ const groupedProxies = computed(() => {
     }
   }
 
-  return providerKeys.map((providerName) => ({
+  const groups = providerKeys.map((providerName) => ({
     providerName,
     proxies: groupdProixes[providerName],
   }))
+
+  const activeGroupIndex = groups.findIndex(({ proxies }) => proxies.includes(props.now))
+
+  if (activeGroupIndex === -1) {
+    return groups
+  }
+
+  const activeGroup = groups[activeGroupIndex]
+  const orderedActiveGroup = {
+    ...activeGroup,
+    proxies: [props.now, ...activeGroup.proxies.filter((proxy) => proxy !== props.now)],
+  }
+
+  return [orderedActiveGroup, ...groups.filter((_, index) => index !== activeGroupIndex)]
 })
 
 const activeIndex = groupedProxies.value.reduce((acc, { proxies }) => {

@@ -1,13 +1,17 @@
 import { NOT_CONNECTED, PROXY_SORT_TYPE } from '@/constant'
-import { isProxyGroup } from '@/helper'
+import { getDirectProxyGroupMode, hasProxyGroupMode, isProxyGroup } from '@/helper'
 import { getLatencyByName, isProxyEnabled, proxiesFilter } from '@/store/proxies'
 import { hideUnavailableProxies, proxySortType, useSmartGroupSort } from '@/store/settings'
 import { smartOrderMap } from '@/store/smart'
 import { computed, type ComputedRef } from 'vue'
 
-export function useRenderProxies(proxies: ComputedRef<string[]>, proxyGroup?: string) {
+export function useRenderProxies(
+  proxies: ComputedRef<string[]>,
+  proxyGroup?: string,
+  modeFilter?: 'auto' | 'manual',
+) {
   const renderProxies = computed(() => {
-    return getRenderProxies(proxies.value, proxyGroup)
+    return getRenderProxies(proxies.value, proxyGroup, modeFilter)
   })
   const availableProxies = computed(() => {
     return renderProxies.value.filter(
@@ -27,7 +31,11 @@ export function useRenderProxies(proxies: ComputedRef<string[]>, proxyGroup?: st
   }
 }
 
-const getRenderProxies = (proxies: string[], groupName?: string) => {
+export const getRenderProxies = (
+  proxies: string[],
+  groupName?: string,
+  modeFilter?: 'auto' | 'manual',
+) => {
   const latencyMap = new Map<string, number>()
 
   proxies = [...proxies]
@@ -36,6 +44,16 @@ const getRenderProxies = (proxies: string[], groupName?: string) => {
   })
 
   proxies = proxies.filter((name) => isProxyGroup(name) || isProxyEnabled(name))
+
+  if (modeFilter) {
+    proxies = proxies.filter((name) => {
+      if (isProxyGroup(name)) {
+        return hasProxyGroupMode(name, modeFilter)
+      }
+
+      return groupName ? getDirectProxyGroupMode(groupName) === modeFilter : true
+    })
+  }
 
   if (hideUnavailableProxies.value) {
     proxies = proxies.filter((name) => {

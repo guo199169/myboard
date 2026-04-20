@@ -72,13 +72,84 @@
     </template>
     <template v-slot:content>
       <div class="flex flex-col gap-3">
-        <ProxyGroup
-          v-for="groupName in groups"
-          :key="groupName"
-          :name="groupName"
-          :force-open="true"
-          :show-warning="false"
-        />
+        <div
+          class="tabs-box tabs tabs-xs self-start"
+          role="tablist"
+        >
+          <button
+            type="button"
+            role="tab"
+            class="tab gap-1"
+            :class="activeTypeTab === 'auto' && 'tab-active'"
+            @click="activeTypeTab = 'auto'"
+          >
+            {{ $t('auto') }}
+            <span class="text-[10px] opacity-70">{{ autoGroups.length }}</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            class="tab gap-1"
+            :class="activeTypeTab === 'manual' && 'tab-active'"
+            @click="activeTypeTab = 'manual'"
+          >
+            {{ $t('manual') }}
+            <span class="text-[10px] opacity-70">{{ manualGroups.length }}</span>
+          </button>
+        </div>
+        <div
+          v-if="!visibleGroups.length"
+          class="text-base-content/50 bg-base-200/50 rounded-xl px-3 py-6 text-center text-sm"
+        >
+          {{ $t('noData') }}
+        </div>
+        <template v-else-if="activeTypeTab === 'auto'">
+          <div
+            v-for="groupName in visibleGroups"
+            :key="groupName"
+            class="bg-base-200/60 border-base-300/60 flex flex-col gap-1 rounded-xl border px-3 py-2"
+          >
+            <div class="flex items-center gap-2">
+              <ProxyName
+                :name="groupName"
+                :icon-size="14"
+                :icon-margin="4"
+              />
+              <span class="text-base-content/60 text-xs tabular-nums">
+                · {{ proxyMap[groupName]?.type }}
+              </span>
+            </div>
+            <div class="text-base-content/70 flex items-center gap-2 text-xs">
+              <ProxyGroupNow :name="groupName" />
+            </div>
+          </div>
+        </template>
+        <template v-else>
+          <div
+            v-for="section in manualSections"
+            :key="section.groupName"
+            class="flex flex-col gap-2"
+          >
+            <div
+              v-if="showManualSectionLabel"
+              class="text-base-content/60 px-1 text-xs font-medium"
+            >
+              {{ section.groupName }}
+            </div>
+            <ProxiesContent
+              v-if="section.leafNodes.length"
+              :name="section.groupName"
+              :now="section.currentProxyName"
+              :render-proxies="section.leafNodes"
+            />
+            <ProxyGroup
+              v-else
+              :name="section.groupName"
+              :mode-filter="activeTypeTab"
+              :show-warning="false"
+            />
+          </div>
+        </template>
       </div>
     </template>
   </CollapseCard>
@@ -86,12 +157,28 @@
 
 <script setup lang="ts">
 import { nodeGroupBuckets } from '@/composables/proxies'
-import { getCurrentProxyName, getNowProxyNodeName, getProxyGroupChains } from '@/store/proxies'
+import { getRenderProxies } from '@/composables/renderProxies'
+import {
+  collectProxyGroupsByMode,
+  getDirectProxyGroupMode,
+  getNodeGroupBucketName,
+  isProxyGroup,
+} from '@/helper'
+import {
+  getCurrentProxyName,
+  getNowProxyNodeName,
+  getProxyGroupChains,
+  proxyGroupList,
+  proxyMap,
+} from '@/store/proxies'
 import { ExclamationTriangleIcon, XCircleIcon } from '@heroicons/vue/24/outline'
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CollapseCard from '../common/CollapseCard.vue'
+import ProxiesContent from './ProxiesContent.vue'
 import ProxyGroup from './ProxyGroup.vue'
+import ProxyGroupNow from './ProxyGroupNow.vue'
+import ProxyName from './ProxyName.vue'
 
 const props = defineProps<{
   name: string
@@ -101,6 +188,190 @@ const bucket = computed(() => nodeGroupBuckets.value.find((item) => item.name ==
 const groups = computed(() => bucket.value?.groups || [])
 const bucketKey = computed(() => `node-bucket:${props.name}`)
 const { t } = useI18n()
+const directSelectedGroupMap = computed(() => {
+  const selectedMap = new Map<string, number>()
+
+  proxyGroupList.value.forEach((sourceGroupName) => {
+    const selectedGroupName = getCurrentProxyName(sourceGroupName)
+
+    if (!selectedGroupName) {
+      return
+    }
+
+    selectedMap.set(selectedGroupName, (selectedMap.get(selectedGroupName) || 0) + 1)
+  })
+
+  return selectedMap
+})
+const groupUsageCountMap = computed(() => {
+  const usageMap = new Map<string, number>()
+
+  proxyGroupList.value.forEach((sourceGroupName) => {
+    const chains = getProxyGroupChains(sourceGroupName)
+
+    chains.slice(1).forEach((groupName) => {
+      usageMap.set(groupName, (usageMap.get(groupName) || 0) + 1)
+    })
+  })
+
+  return usageMap
+})
+const orderedGroups = computed(() => {
+  return [...groups.value].sort((prev, next) => {
+    const prevDirectSelected = directSelectedGroupMap.value.get(prev) || 0
+    const nextDirectSelected = directSelectedGroupMap.value.get(next) || 0
+
+    if (prevDirectSelected !== nextDirectSelected) {
+      return nextDirectSelected - prevDirectSelected
+    }
+
+    const prevUsage = groupUsageCountMap.value.get(prev) || 0
+    const nextUsage = groupUsageCountMap.value.get(next) || 0
+
+    if (prevUsage !== nextUsage) {
+      return nextUsage - prevUsage
+    }
+
+    const prevAvailable = getCurrentProxyName(prev) ? 1 : 0
+    const nextAvailable = getCurrentProxyName(next) ? 1 : 0
+
+    if (prevAvailable !== nextAvailable) {
+      return nextAvailable - prevAvailable
+    }
+
+    return prev.localeCompare(next, 'zh-CN')
+  })
+})
+const collectOrderedGroupsByMode = (mode: 'auto' | 'manual') => {
+  const result: string[] = []
+  const seen = new Set<string>()
+
+  orderedGroups.value.forEach((groupName) => {
+    collectProxyGroupsByMode(groupName, mode).forEach((matchedGroupName) => {
+      if (seen.has(matchedGroupName)) {
+        return
+      }
+
+      seen.add(matchedGroupName)
+      result.push(matchedGroupName)
+    })
+  })
+
+  return result
+}
+const autoGroups = computed(() => collectOrderedGroupsByMode('auto'))
+const manualGroups = computed(() => collectOrderedGroupsByMode('manual'))
+const preferredTypeTab = computed<'auto' | 'manual'>(() => {
+  const primaryGroup = orderedGroups.value[0]
+
+  if (!primaryGroup) {
+    return 'auto'
+  }
+
+  return getDirectProxyGroupMode(primaryGroup)
+})
+const activeTypeTab = ref<'auto' | 'manual'>(preferredTypeTab.value)
+const visibleGroups = computed(() => {
+  return activeTypeTab.value === 'auto' ? autoGroups.value : manualGroups.value
+})
+const belongsToActiveBucket = (name: string) => {
+  const bucketName = getNodeGroupBucketName(name)
+
+  return bucketName === props.name || bucketName === name
+}
+const collectManualSections = (
+  groupName: string,
+  visited = new Set<string>(),
+): { groupName: string; leafNodes: string[]; currentProxyName: string }[] => {
+  if (!groupName || visited.has(groupName)) {
+    return []
+  }
+
+  visited.add(groupName)
+
+  const renderProxies = getRenderProxies(proxyMap.value[groupName]?.all ?? [], groupName, 'manual')
+  const leafNodes = renderProxies.filter(
+    (proxyName) => !isProxyGroup(proxyName) && belongsToActiveBucket(proxyName),
+  )
+  const childGroups = renderProxies.filter(
+    (proxyName) => isProxyGroup(proxyName) && belongsToActiveBucket(proxyName),
+  )
+  const sections: { groupName: string; leafNodes: string[]; currentProxyName: string }[] = []
+
+  if (leafNodes.length) {
+    const currentProxyName = getNowProxyNodeName(groupName)
+
+    sections.push({
+      groupName,
+      leafNodes,
+      currentProxyName: leafNodes.includes(currentProxyName) ? currentProxyName : '',
+    })
+  }
+
+  const childSections = childGroups.flatMap((childGroupName) =>
+    collectManualSections(childGroupName, new Set(visited)),
+  )
+
+  if (childSections.length) {
+    sections.push(...childSections)
+  }
+
+  if (sections.length) {
+    return sections
+  }
+
+  return belongsToActiveBucket(groupName)
+    ? [
+        {
+          groupName,
+          leafNodes: [],
+          currentProxyName: getCurrentProxyName(groupName),
+        },
+      ]
+    : []
+}
+const manualSections = computed(() => {
+  const result: { groupName: string; leafNodes: string[]; currentProxyName: string }[] = []
+  const seen = new Set<string>()
+
+  manualGroups.value.forEach((groupName) => {
+    collectManualSections(groupName).forEach((section) => {
+      if (seen.has(section.groupName)) {
+        return
+      }
+
+      seen.add(section.groupName)
+      result.push(section)
+    })
+  })
+
+  return result
+})
+const showManualSectionLabel = computed(() => manualSections.value.length > 1)
+watch(
+  [autoGroups, manualGroups, preferredTypeTab],
+  ([nextAutoGroups, nextManualGroups, nextPreferredTypeTab]) => {
+    if (!orderedGroups.value.length) {
+      activeTypeTab.value = 'auto'
+      return
+    }
+
+    if (!nextAutoGroups.length && nextManualGroups.length) {
+      activeTypeTab.value = 'manual'
+      return
+    }
+
+    if (!nextManualGroups.length && nextAutoGroups.length) {
+      activeTypeTab.value = 'auto'
+      return
+    }
+
+    if (!visibleGroups.value.length) {
+      activeTypeTab.value = nextPreferredTypeTab
+    }
+  },
+  { immediate: true },
+)
 const unavailableCount = computed(
   () => groups.value.filter((groupName) => !getCurrentProxyName(groupName)).length,
 )
@@ -117,8 +388,7 @@ const statusVariant = computed<'none' | 'partial' | 'full'>(() => {
   return 'partial'
 })
 const currentPaths = computed(() => {
-  const primaryGroup = groups.value.find((groupName) => groupName === props.name)
-  const targetGroups = primaryGroup ? [primaryGroup] : groups.value
+  const targetGroups = visibleGroups.value.length ? visibleGroups.value : orderedGroups.value
 
   return targetGroups.map((groupName) => {
     const chains = getProxyGroupChains(groupName)

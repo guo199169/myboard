@@ -15,7 +15,21 @@ const { maxProxies } = useCalculateMaxProxies(
   props.renderProxies.length,
   props.renderProxies.indexOf(props.now ?? ''),
 )
-const proxies = computed(() => props.renderProxies.slice(0, maxProxies.value))
+const orderedProxies = computed(() => {
+  if (!props.now) {
+    return props.renderProxies
+  }
+
+  const activeProxy = props.renderProxies.find((proxy) => proxy === props.now)
+
+  if (!activeProxy) {
+    return props.renderProxies
+  }
+
+  return [activeProxy, ...props.renderProxies.filter((proxy) => proxy !== activeProxy)]
+})
+
+const proxies = computed(() => orderedProxies.value.slice(0, maxProxies.value))
 </script>
 
 <template>

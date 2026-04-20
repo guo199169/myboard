@@ -2,6 +2,7 @@ import { isSingBox } from '@/api'
 import { GLOBAL, PROXY_TAB_TYPE } from '@/constant'
 import {
   getNodeGroupBucketName,
+  isExcludedProxyGroup,
   isHiddenGroup,
   isNodeGroup,
   NODE_GROUP_BUCKET_ORDER,
@@ -25,7 +26,7 @@ const getAllGroups = () => {
     return []
   }
 
-  return displayGlobalByMode.value
+  const allGroups = displayGlobalByMode.value
     ? configs.value?.mode.toUpperCase() === GLOBAL
       ? [
           isSingBox.value && proxyMap.value[customGlobalNode.value]
@@ -34,6 +35,8 @@ const getAllGroups = () => {
         ]
       : proxyGroupList.value
     : [...proxyGroupList.value, GLOBAL]
+
+  return allGroups.filter((name) => !isExcludedProxyGroup(name))
 }
 
 const getRenderGroups = () => {

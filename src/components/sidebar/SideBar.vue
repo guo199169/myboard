@@ -61,7 +61,7 @@
 import CommonSidebar from '@/components/sidebar/CommonCtrl.vue'
 import { nodeGroupBuckets } from '@/composables/proxies'
 import { ROUTE_ICON_MAP, ROUTE_NAME } from '@/constant'
-import { isNodeGroup, renderRoutes } from '@/helper'
+import { isExcludedProxyGroup, isNodeGroup, renderRoutes } from '@/helper'
 import { useTooltip } from '@/helper/tooltip'
 import router from '@/router'
 import { getCurrentProxyName, proxyMap } from '@/store/proxies'
@@ -92,7 +92,7 @@ const mouseenterHandler = (e: MouseEvent, r: string) => {
 const route = useRoute()
 const proxiesWarningCount = computed(() => {
   const allGroupNames = Object.keys(proxyMap.value).filter(
-    (name) => proxyMap.value[name]?.all?.length,
+    (name) => proxyMap.value[name]?.all?.length && !isExcludedProxyGroup(name),
   )
   const unavailableProxyGroupCount = allGroupNames.filter(
     (name) => !isNodeGroup(name) && !getCurrentProxyName(name),

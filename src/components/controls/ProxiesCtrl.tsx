@@ -2,7 +2,7 @@ import { disconnectByIdAPI, isSingBox, updateProxyProviderAPI } from '@/api'
 import { nodeGroupBuckets, renderGroups } from '@/composables/proxies'
 import { useCtrlsBar } from '@/composables/useCtrlsBar'
 import { PROXY_SORT_TYPE, PROXY_TAB_TYPE, ROUTE_NAME, SETTINGS_MENU_KEY } from '@/constant'
-import { isNodeGroup } from '@/helper'
+import { isExcludedProxyGroup, isNodeGroup } from '@/helper'
 import { getMinCardWidth } from '@/helper/utils'
 import { configs, updateConfigs } from '@/store/config'
 import { activeConnections } from '@/store/connections'
@@ -122,7 +122,7 @@ export default defineComponent({
 
     const tabsWithNumbers = computed(() => {
       const allGroupNames = Object.keys(proxyMap.value).filter(
-        (name) => proxyMap.value[name]?.all?.length,
+        (name) => proxyMap.value[name]?.all?.length && !isExcludedProxyGroup(name),
       )
       const proxyGroupCount = allGroupNames.filter((name) => !isNodeGroup(name)).length
       const unavailableProxyGroupCount = allGroupNames.filter(

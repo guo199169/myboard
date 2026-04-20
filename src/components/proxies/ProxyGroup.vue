@@ -116,10 +116,11 @@ const props = defineProps<{
   name: string
   forceOpen?: boolean
   showWarning?: boolean
+  modeFilter?: 'auto' | 'manual'
 }>()
 const proxyGroup = computed(() => proxyMap.value[props.name])
 const allProxies = computed(() => proxyGroup.value.all ?? [])
-const { proxiesCount, renderProxies } = useRenderProxies(allProxies, props.name)
+const { proxiesCount, renderProxies } = useRenderProxies(allProxies, props.name, props.modeFilter)
 const currentProxyName = computed(() => getCurrentProxyName(props.name))
 const hasNoAvailableProxy = computed(() => !currentProxyName.value)
 const showWarning = computed(() => props.showWarning !== false)

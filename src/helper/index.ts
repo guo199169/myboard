@@ -53,6 +53,7 @@ export const NODE_GROUP_BUCKET_ORDER = [
   '英国',
   '荷兰',
   '芬兰',
+  '自建',
   '冷门',
   '兜底策略',
 ]
@@ -68,6 +69,18 @@ const NODE_GROUP_BUCKET_RULES = [
   { label: '英国', patterns: [/英国/, /\buk\b/, /\bgb\b/, /britain/, /united\s*kingdom/] },
   { label: '荷兰', patterns: [/荷兰/, /\bnl\b/, /netherlands/] },
   { label: '芬兰', patterns: [/芬兰/, /\bfi\b/, /finland/] },
+  {
+    label: '自建',
+    patterns: [
+      /自建/,
+      /\bgcp\b/,
+      /google\s*cloud/,
+      /\baws\b/,
+      /amazon\s*web\s*services/,
+      /oracle/,
+      /\bazure\b/,
+    ],
+  },
   { label: '冷门', patterns: [/冷门/] },
   { label: '兜底策略', patterns: [/^全球加速$/, /^globe$/, /^global$/] },
 ]
@@ -86,6 +99,93 @@ export const hasNodeGroupBucketName = (name: string) => {
   return getNodeGroupBucketName(name) !== name || NODE_GROUP_BUCKET_ORDER.includes(name.trim())
 }
 
+export const isExcludedProxyGroup = (name: string) => {
+  const normalizedName = name.trim().toLowerCase()
+
+  return (
+    ((/\bgcp\b/.test(normalizedName) || /google\s*cloud/.test(normalizedName)) &&
+      /兜底/.test(normalizedName)) ||
+    ((/\bgcp\b/.test(normalizedName) || /google\s*cloud/.test(normalizedName)) &&
+      /fallback/.test(normalizedName))
+  )
+}
+
+export const getDirectProxyGroupMode = (name: string): 'auto' | 'manual' => {
+  const normalizedName = name.trim().toLowerCase()
+
+  if (/自动|auto/.test(normalizedName)) {
+    return 'auto'
+  }
+
+  if (/手动|manual/.test(normalizedName)) {
+    return 'manual'
+  }
+
+  const groupType = proxyMap.value[name]?.type?.toLowerCase()
+
+  return [
+    PROXY_TYPE.Fallback,
+    PROXY_TYPE.URLTest,
+    PROXY_TYPE.LoadBalance,
+    PROXY_TYPE.Smart,
+  ].includes(groupType as PROXY_TYPE)
+    ? 'auto'
+    : 'manual'
+}
+
+export const hasProxyGroupMode = (
+  groupName: string,
+  mode: 'auto' | 'manual',
+  visited = new Set<string>(),
+): boolean => {
+  if (!groupName || visited.has(groupName)) {
+    return false
+  }
+
+  visited.add(groupName)
+
+  if (getDirectProxyGroupMode(groupName) === mode) {
+    return true
+  }
+
+  const children = proxyMap.value[groupName]?.all ?? []
+
+  return children.some((childName) => {
+    if (!isProxyGroup(childName) || childName === groupName) {
+      return false
+    }
+
+    return hasProxyGroupMode(childName, mode, new Set(visited))
+  })
+}
+
+export const collectProxyGroupsByMode = (
+  groupName: string,
+  mode: 'auto' | 'manual',
+  visited = new Set<string>(),
+): string[] => {
+  if (!groupName || visited.has(groupName)) {
+    return []
+  }
+
+  visited.add(groupName)
+
+  const currentMode = getDirectProxyGroupMode(groupName)
+  if (currentMode === mode) {
+    return [groupName]
+  }
+
+  const children = proxyMap.value[groupName]?.all ?? []
+
+  return children.flatMap((childName) => {
+    if (!isProxyGroup(childName) || childName === groupName) {
+      return []
+    }
+
+    return collectProxyGroupsByMode(childName, mode, new Set(visited))
+  })
+}
+
 export const isNodeGroup = (name: string) => {
   const proxyNode = proxyMap.value[name]
 
@@ -93,35 +193,19 @@ export const isNodeGroup = (name: string) => {
     return false
   }
 
+  if (isExcludedProxyGroup(name)) {
+    return false
+  }
+
   const normalizedName = name.trim().toLowerCase()
-  const strategyGroupPatterns = [
-    /global/,
-    /proxy/,
-    /ai/,
-    /direct/,
-    /telegram/,
-    /youtube/,
-    /netflix/,
-    /tiktok/,
-    /instagram/,
-    /^x$/,
-    /github/,
-    /steam/,
-    /apple/,
-    /全球/,
-    /加速/,
-    /专线/,
-    /直连/,
-    /代理/,
-    /兜底/,
-  ]
+  const nonNodeGroupOverridePatterns = [/optimi[sz]e/, /优化/]
+
+  if (nonNodeGroupOverridePatterns.some((pattern) => pattern.test(normalizedName))) {
+    return false
+  }
 
   if (hasNodeGroupBucketName(name)) {
     return true
-  }
-
-  if (strategyGroupPatterns.some((pattern) => pattern.test(normalizedName))) {
-    return false
   }
 
   const children = proxyNode.all.filter((child) => child !== name)
