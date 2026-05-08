@@ -163,6 +163,7 @@ import {
   getDirectProxyGroupMode,
   getNodeGroupBucketName,
   isProxyGroup,
+  NODE_GROUP_BUCKET_ORDER,
 } from '@/helper'
 import {
   getCurrentProxyName,
@@ -242,13 +243,23 @@ const orderedGroups = computed(() => {
     return prev.localeCompare(next, 'zh-CN')
   })
 })
+const isOrderedBucket = computed(() => NODE_GROUP_BUCKET_ORDER.includes(props.name))
+const belongsToActiveBucket = (name: string) => {
+  const bucketName = getNodeGroupBucketName(name)
+
+  if (bucketName === props.name) {
+    return true
+  }
+
+  return !isOrderedBucket.value && bucketName === name
+}
 const collectOrderedGroupsByMode = (mode: 'auto' | 'manual') => {
   const result: string[] = []
   const seen = new Set<string>()
 
   orderedGroups.value.forEach((groupName) => {
     collectProxyGroupsByMode(groupName, mode).forEach((matchedGroupName) => {
-      if (seen.has(matchedGroupName)) {
+      if (!belongsToActiveBucket(matchedGroupName) || seen.has(matchedGroupName)) {
         return
       }
 
@@ -274,11 +285,6 @@ const activeTypeTab = ref<'auto' | 'manual'>(preferredTypeTab.value)
 const visibleGroups = computed(() => {
   return activeTypeTab.value === 'auto' ? autoGroups.value : manualGroups.value
 })
-const belongsToActiveBucket = (name: string) => {
-  const bucketName = getNodeGroupBucketName(name)
-
-  return bucketName === props.name || bucketName === name
-}
 const collectManualSections = (
   groupName: string,
   visited = new Set<string>(),
