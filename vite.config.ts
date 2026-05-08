@@ -35,9 +35,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'favicon-dark.svg'],
       manifest: {
-        name: 'zashboard',
-        short_name: 'zashboard',
-        description: 'a dashboard using clash api',
+        name: 'Myboard',
+        short_name: 'Myboard',
+        description: 'Myboard dashboard using Clash API',
         theme_color: '#000000',
         icons: [
           {
