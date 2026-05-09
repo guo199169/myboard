@@ -83,6 +83,13 @@ export const mihomo = computed<[MIHOMO, string] | undefined>(() => {
 })
 export const zashboardVersion = ref(__APP_VERSION__)
 
+const MYBOARD_EXTERNAL_UI = '/usr/share/openclash/ui'
+const MYBOARD_EXTERNAL_UI_NAME = 'myboard'
+const MYBOARD_EXTERNAL_UI_URL = 'https://paoge666.github.io/myboard/myboard.zip'
+const isOpenClashMyboardUI = () => {
+  return window.location.pathname.replace(/\/+$/, '').endsWith('/ui/myboard')
+}
+
 watch(
   activeBackend,
   async (val) => {
@@ -230,7 +237,15 @@ export const updateConfigsAPI = (
   })
 }
 
-export const upgradeUIAPI = () => {
+export const upgradeUIAPI = async () => {
+  if (isOpenClashMyboardUI()) {
+    await patchConfigsAPI({
+      'external-ui': MYBOARD_EXTERNAL_UI,
+      'external-ui-name': MYBOARD_EXTERNAL_UI_NAME,
+      'external-ui-url': MYBOARD_EXTERNAL_UI_URL,
+    }).catch(() => undefined)
+  }
+
   return axios.post('/upgrade/ui')
 }
 
