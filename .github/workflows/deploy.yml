@@ -39,6 +39,28 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Write version metadata
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          sha = os.environ['GITHUB_SHA']
+          metadata = {
+              'name': 'Myboard',
+              'version': '3.4.0-myboard.1',
+              'commit': sha[:7],
+              'commit_full': sha,
+              'build_time': datetime.now(timezone.utc).isoformat(),
+          }
+          Path('dist/myboard-version.json').write_text(
+              json.dumps(metadata, ensure_ascii=False, separators=(',', ':')),
+              encoding='utf-8',
+          )
+          PY
+
       - name: Package dashboard zip
         run: |
           python - <<'PY'
