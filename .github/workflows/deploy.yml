@@ -48,9 +48,10 @@ jobs:
           from pathlib import Path
 
           sha = os.environ['GITHUB_SHA']
+          package = json.loads(Path('package.json').read_text(encoding='utf-8'))
           metadata = {
               'name': 'Myboard',
-              'version': '3.4.0-myboard.1',
+              'version': package.get('version', ''),
               'commit': sha[:7],
               'commit_full': sha,
               'build_time': datetime.now(timezone.utc).isoformat(),
