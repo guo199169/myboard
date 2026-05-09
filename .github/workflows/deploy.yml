@@ -39,6 +39,20 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Package dashboard zip
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from zipfile import ZIP_DEFLATED, ZipFile
+
+          root = Path('dist')
+          with ZipFile(root / 'myboard.zip', 'w', ZIP_DEFLATED) as archive:
+              for path in root.rglob('*'):
+                  if path.name == 'myboard.zip' or not path.is_file():
+                      continue
+                  archive.write(path, path.relative_to(root))
+          PY
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
