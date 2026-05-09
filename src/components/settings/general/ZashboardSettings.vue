@@ -59,7 +59,7 @@
 </template>
 
 <script setup lang="ts">
-import { upgradeUIAPI, zashboardVersion as myboardVersion } from '@/api'
+import { myboardVersion, upgradeUIAPI } from '@/api'
 import { useIsSettingVisible, useSettings } from '@/composables/settings'
 import { GENERAL_ITEM_KEYS } from '@/config/settingsItems'
 import { handlerUpgradeSuccess } from '@/helper'
