@@ -65,7 +65,7 @@ import { GENERAL_ITEM_KEYS } from '@/config/settingsItems'
 import { handlerUpgradeSuccess } from '@/helper'
 import { exportSettings, resetSettings } from '@/helper/utils'
 import { twMerge } from 'tailwind-merge'
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ImportSettings from '../../common/ImportSettings.vue'
 import GeneralSettings from './GeneralSettings.vue'
@@ -76,10 +76,14 @@ const isVisibleActions = useIsSettingVisible(k.actions)
 
 const commitId = __COMMIT_ID__
 
-const { isUIUpdateAvailable } = useSettings()
+const { checkUIUpdate, isUIUpdateAvailable } = useSettings()
 const { t } = useI18n()
 
 const isUIUpgrading = ref(false)
+
+onMounted(() => {
+  checkUIUpdate()
+})
 
 const handlerClickResetSettings = () => {
   if (!window.confirm(t('resetSettingsConfirm'))) return
