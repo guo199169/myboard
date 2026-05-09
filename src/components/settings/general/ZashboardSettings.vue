@@ -10,13 +10,13 @@
           <span class="bg-secondary h-2 w-2 rounded-full"></span>
         </span>
         <a
-          href="https://github.com/Zephyruso/zashboard"
+          href="https://github.com/PaoGe666/myboard"
           target="_blank"
           class="text-lg font-semibold"
         >
-          zashboard
+          Myboard
           <span class="text-sm font-normal opacity-50">
-            {{ zashboardVersion }}
+            {{ myboardVersion }}
             <span
               v-if="commitId"
               class="text-xs"
@@ -59,7 +59,7 @@
 </template>
 
 <script setup lang="ts">
-import { upgradeUIAPI, zashboardVersion } from '@/api'
+import { upgradeUIAPI, zashboardVersion as myboardVersion } from '@/api'
 import { useIsSettingVisible, useSettings } from '@/composables/settings'
 import { GENERAL_ITEM_KEYS } from '@/config/settingsItems'
 import { handlerUpgradeSuccess } from '@/helper'
