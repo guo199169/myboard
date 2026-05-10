@@ -97,34 +97,45 @@
             <span class="text-[10px] opacity-70">{{ manualGroups.length }}</span>
           </button>
         </div>
-        <div
-          v-if="!visibleGroups.length"
-          class="text-base-content/50 bg-base-200/50 rounded-xl px-3 py-6 text-center text-sm"
-        >
-          {{ $t('noData') }}
-        </div>
-        <template v-else-if="activeTypeTab === 'auto'">
+        <template v-if="activeTypeTab === 'auto'">
           <div
-            v-for="groupName in visibleGroups"
-            :key="groupName"
-            class="bg-base-200/60 border-base-300/60 flex flex-col gap-1 rounded-xl border px-3 py-2"
+            v-if="!autoSections.length"
+            class="text-base-content/50 bg-base-200/50 rounded-xl px-3 py-6 text-center text-sm"
           >
-            <div class="flex items-center gap-2">
-              <ProxyName
-                :name="groupName"
-                :icon-size="14"
-                :icon-margin="4"
-              />
-              <span class="text-base-content/60 text-xs tabular-nums">
-                · {{ proxyMap[groupName]?.type }}
-              </span>
+            {{ $t('noData') }}
+          </div>
+          <div
+            v-for="section in autoSections"
+            :key="section.groupName"
+            class="flex flex-col gap-2"
+          >
+            <div
+              v-if="showAutoSectionLabel"
+              class="text-base-content/60 px-1 text-xs font-medium"
+            >
+              {{ section.groupName }}
             </div>
-            <div class="text-base-content/70 flex items-center gap-2 text-xs">
-              <ProxyGroupNow :name="groupName" />
-            </div>
+            <ProxiesContent
+              v-if="section.leafNodes.length"
+              :name="section.groupName"
+              :now="section.currentProxyName"
+              :render-proxies="section.leafNodes"
+            />
+            <ProxyGroup
+              v-else
+              :name="section.groupName"
+              :mode-filter="'auto'"
+              :show-warning="false"
+            />
           </div>
         </template>
         <template v-else>
+          <div
+            v-if="!manualSections.length"
+            class="text-base-content/50 bg-base-200/50 rounded-xl px-3 py-6 text-center text-sm"
+          >
+            {{ $t('noData') }}
+          </div>
           <div
             v-for="section in manualSections"
             :key="section.groupName"
@@ -145,7 +156,7 @@
             <ProxyGroup
               v-else
               :name="section.groupName"
-              :mode-filter="activeTypeTab"
+              :mode-filter="'manual'"
               :show-warning="false"
             />
           </div>
@@ -163,7 +174,6 @@ import {
   getDirectProxyGroupMode,
   getNodeGroupBucketName,
   isProxyGroup,
-  NODE_GROUP_BUCKET_ORDER,
 } from '@/helper'
 import {
   getCurrentProxyName,
@@ -178,8 +188,6 @@ import { useI18n } from 'vue-i18n'
 import CollapseCard from '../common/CollapseCard.vue'
 import ProxiesContent from './ProxiesContent.vue'
 import ProxyGroup from './ProxyGroup.vue'
-import ProxyGroupNow from './ProxyGroupNow.vue'
-import ProxyName from './ProxyName.vue'
 
 const props = defineProps<{
   name: string
@@ -243,7 +251,6 @@ const orderedGroups = computed(() => {
     return prev.localeCompare(next, 'zh-CN')
   })
 })
-const isOrderedBucket = computed(() => NODE_GROUP_BUCKET_ORDER.includes(props.name))
 const belongsToActiveBucket = (name: string) => {
   const bucketName = getNodeGroupBucketName(name)
 
@@ -251,7 +258,7 @@ const belongsToActiveBucket = (name: string) => {
     return true
   }
 
-  return !isOrderedBucket.value && bucketName === name
+  return bucketName === name
 }
 const collectOrderedGroupsByMode = (mode: 'auto' | 'manual') => {
   const result: string[] = []
@@ -285,7 +292,8 @@ const activeTypeTab = ref<'auto' | 'manual'>(preferredTypeTab.value)
 const visibleGroups = computed(() => {
   return activeTypeTab.value === 'auto' ? autoGroups.value : manualGroups.value
 })
-const collectManualSections = (
+const collectSectionsByMode = (
+  mode: 'auto' | 'manual',
   groupName: string,
   visited = new Set<string>(),
 ): { groupName: string; leafNodes: string[]; currentProxyName: string }[] => {
@@ -295,7 +303,7 @@ const collectManualSections = (
 
   visited.add(groupName)
 
-  const renderProxies = getRenderProxies(proxyMap.value[groupName]?.all ?? [], groupName, 'manual')
+  const renderProxies = getRenderProxies(proxyMap.value[groupName]?.all ?? [], groupName, mode)
   const leafNodes = renderProxies.filter(
     (proxyName) => !isProxyGroup(proxyName) && belongsToActiveBucket(proxyName),
   )
@@ -315,7 +323,7 @@ const collectManualSections = (
   }
 
   const childSections = childGroups.flatMap((childGroupName) =>
-    collectManualSections(childGroupName, new Set(visited)),
+    collectSectionsByMode(mode, childGroupName, new Set(visited)),
   )
 
   if (childSections.length) {
@@ -336,12 +344,14 @@ const collectManualSections = (
       ]
     : []
 }
-const manualSections = computed(() => {
-  const result: { groupName: string; leafNodes: string[]; currentProxyName: string }[] = []
+type Section = { groupName: string; leafNodes: string[]; currentProxyName: string }
+const sectionsByMode = (mode: 'auto' | 'manual') => {
+  const groups = mode === 'auto' ? autoGroups.value : manualGroups.value
+  const result: Section[] = []
   const seen = new Set<string>()
 
-  manualGroups.value.forEach((groupName) => {
-    collectManualSections(groupName).forEach((section) => {
+  groups.forEach((groupName) => {
+    collectSectionsByMode(mode, groupName).forEach((section) => {
       if (seen.has(section.groupName)) {
         return
       }
@@ -352,8 +362,11 @@ const manualSections = computed(() => {
   })
 
   return result
-})
+}
+const manualSections = computed(() => sectionsByMode('manual'))
+const autoSections = computed(() => sectionsByMode('auto'))
 const showManualSectionLabel = computed(() => manualSections.value.length > 1)
+const showAutoSectionLabel = computed(() => autoSections.value.length > 1)
 watch(
   [autoGroups, manualGroups],
   ([nextAutoGroups, nextManualGroups]) => {
