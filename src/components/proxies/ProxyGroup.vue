@@ -77,6 +77,7 @@
         :name="name"
         :now="currentProxyName"
         :render-proxies="renderProxies"
+        :readonly="readonly"
       />
     </template>
   </CollapseCard>
@@ -117,6 +118,7 @@ const props = defineProps<{
   forceOpen?: boolean
   showWarning?: boolean
   modeFilter?: 'auto' | 'manual'
+  readonly?: boolean
 }>()
 const proxyGroup = computed(() => proxyMap.value[props.name])
 const allProxies = computed(() => proxyGroup.value.all ?? [])

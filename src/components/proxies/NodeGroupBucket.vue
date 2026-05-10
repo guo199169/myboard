@@ -127,6 +127,7 @@
               :name="section.groupName"
               :mode-filter="'auto'"
               :show-warning="false"
+              :readonly="true"
             />
           </div>
         </template>

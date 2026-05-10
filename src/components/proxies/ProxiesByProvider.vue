@@ -9,6 +9,7 @@ const props = defineProps<{
   name: string
   now: string
   renderProxies: string[]
+  readonly?: boolean
 }>()
 
 const groupedProxies = computed(() => {
@@ -106,7 +107,7 @@ const truncatedProxies = computed(() => {
           :name="node"
           :group-name="name"
           :active="node === now"
-          @click.stop="handlerProxySelect(name, node)"
+          @click.stop="!readonly && handlerProxySelect(name, node)"
         />
       </ProxyNodeGrid>
     </div>
