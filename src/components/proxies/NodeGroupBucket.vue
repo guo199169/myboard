@@ -149,7 +149,8 @@
             >
               {{ section.groupName }}
             </div>
-            <ProxiesContent
+            <Component
+              :is="groupProxiesByProvider ? ProxiesByProvider : ProxiesContent"
               v-if="section.leafNodes.length"
               :name="section.groupName"
               :now="section.currentProxyName"
@@ -189,7 +190,9 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CollapseCard from '../common/CollapseCard.vue'
 import ProxiesContent from './ProxiesContent.vue'
+import ProxiesByProvider from './ProxiesByProvider.vue'
 import ProxyGroup from './ProxyGroup.vue'
+import { groupProxiesByProvider } from '@/store/settings'
 import '@/composables/autoOptimize'
 
 const props = defineProps<{
