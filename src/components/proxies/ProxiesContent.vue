@@ -9,6 +9,7 @@ const props = defineProps<{
   name: string
   now?: string
   renderProxies: string[]
+  readonly?: boolean
 }>()
 
 const { maxProxies } = useCalculateMaxProxies(
@@ -40,7 +41,7 @@ const proxies = computed(() => orderedProxies.value.slice(0, maxProxies.value))
       :name="node"
       :group-name="name"
       :active="node === now"
-      @click.stop="handlerProxySelect(name, node)"
+      @click.stop="!readonly && handlerProxySelect(name, node)"
     />
   </ProxyNodeGrid>
 </template>
