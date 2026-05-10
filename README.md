@@ -22,7 +22,15 @@
 
 ## 安装部署
 
-### 方式一：Docker 构建部署（推荐）
+myboard 有两种安装方式：**完整安装**（独立部署整个面板）或 **增量替换**（在原版 zashboard 基础上替换前端文件）。
+
+---
+
+### 一、完整安装
+
+完整安装后，myboard 作为一个独立面板运行，自带完整的前端页面和后端通信能力。
+
+#### 方式一：Docker 构建部署（推荐）
 
 ```bash
 # 克隆仓库
@@ -40,7 +48,11 @@ docker run -d --name myboard -p 8080:80 myboard:latest
 
 这里的 `8080` 是面板网页的访问端口，不是 Mihomo / Clash API 端口。
 
-### 方式二：源码构建
+#### 方式二：GitHub Pages
+
+仓库已内置 GitHub Pages 工作流，推送到 `main` 后会自动构建并发布 `dist/`。
+
+#### 方式三：源码构建 + 任意 Web 服务器
 
 ```bash
 # 克隆仓库
@@ -57,17 +69,41 @@ pnpm build
 pnpm preview
 ```
 
-构建完成后，将 `dist/` 目录部署到任意 Web 服务器（Nginx、Caddy 等）即可。
+构建完成后，将 `dist/` 目录部署到任意 Web 服务器（Nginx、Caddy、Cloudflare Pages、Vercel 等）即可。
 
-### 方式三：GitHub Pages
+---
 
-仓库已内置 GitHub Pages 工作流，推送到 `main` 后会自动构建并发布 `dist/`。
+### 二、增量替换（在原版 zashboard 上替换 UI）
 
-## 更新命令
+适用于 OpenClash、ShellCrash 等已内置原版 zashboard 的工具，只需替换前端文件，保留原有后端。
+
+以 OpenClash 为例：
+
+```bash
+# 1. 克隆并构建
+git clone https://github.com/PaoGe666/myboard.git
+cd myboard
+pnpm install
+pnpm build
+
+# 2. 将构建产物复制到 OpenClash 的 UI 目录
+# 替换前建议备份原版 zashboard 目录
+cp -r dist/* /etc/openclash/ui/
+
+# 3. 重启 OpenClash
+/etc/init.d/openclash restart
+```
+
+不同工具的 UI 路径不同，请根据实际工具查找对应目录。
+myboard 的配置文件与 zashboard 完全兼容（导出文件名统一为 `zashboard-settings.json`），替换后原有配置不会丢失。
+
+---
+
+### 更新命令
 
 后续需要升级到最新版本时，可以直接在现有目录执行更新命令，不需要重新安装。
 
-### Docker 部署更新
+#### Docker 部署更新
 
 ```bash
 cd myboard
@@ -77,7 +113,7 @@ docker rm -f myboard
 docker run -d --name myboard -p 8080:80 myboard:latest
 ```
 
-### 源码构建更新
+#### 源码构建更新
 
 ```bash
 cd myboard
@@ -90,14 +126,14 @@ pnpm build
 
 如果已经拉到最新代码、容器也已重建，但网页看起来还是旧版本，请优先检查浏览器缓存。
 
-这个项目启用了 PWA，浏览器可能会继续使用旧的静态资源缓存。遇到“仓库已经更新，但页面没有变化”时，按下面顺序处理：
+这个项目启用了 PWA，浏览器可能会继续使用旧的静态资源缓存。遇到”仓库已经更新，但页面没有变化”时，按下面顺序处理：
 
 1. 先执行上面的更新命令，确保容器已经重新构建并启动。
 2. 打开面板页面后按一次强制刷新：
    - Windows / Linux：`Ctrl + F5` 或 `Ctrl + Shift + R`
    - macOS：`Cmd + Shift + R`
 3. 如果还是旧页面，清除当前站点缓存或删除浏览器里的站点数据后再打开。
-4. 如果你是以“安装到桌面 / 添加到主屏幕”的 PWA 方式打开，请先关闭旧窗口，再重新打开；必要时卸载旧的 PWA 后重新进入。
+4. 如果你是以”安装到桌面 / 添加到主屏幕”的 PWA 方式打开，请先关闭旧窗口，再重新打开；必要时卸载旧的 PWA 后重新进入。
 
 如果想快速确认容器里是否已经是新版本，也可以重新构建后查看页面底部或设置中的版本 / commit 信息是否变化。
 
@@ -118,17 +154,6 @@ http://your-ip:port/#/setup?hostname=你的IP&port=9090&secret=你的密码
 - `hostname` - Clash API 的 IP 或域名
 - `port` - Clash API 端口（默认 9090）
 - `secret` - Clash API 密码（可选）
-
-## 部署环境
-
-构建后的 `dist/` 是纯静态文件，可部署到：
-
-- Nginx / Caddy
-- Docker
-- Cloudflare Pages
-- GitHub Pages
-- Vercel
-- 任意 Web 服务器
 
 ## 当前自定义内容
 
