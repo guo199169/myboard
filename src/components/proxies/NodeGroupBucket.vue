@@ -115,20 +115,20 @@
             >
               {{ section.groupName }}
             </div>
-            <ProxiesContent
-              v-if="section.leafNodes.length"
-              :readonly="true"
-              :name="section.groupName"
-              :now="section.currentProxyName"
-              :render-proxies="section.leafNodes"
-            />
-            <ProxyGroup
+            <template v-if="section.currentProxyName">
+              <ProxiesContent
+                :readonly="true"
+                :name="section.groupName"
+                :now="section.currentProxyName"
+                :render-proxies="[section.currentProxyName]"
+              />
+            </template>
+            <div
               v-else
-              :name="section.groupName"
-              :mode-filter="'auto'"
-              :show-warning="false"
-              :readonly="true"
-            />
+              class="text-base-content/50 bg-base-200/50 rounded-xl px-3 py-6 text-center text-sm"
+            >
+              {{ $t('noAvailableProxy') }}
+            </div>
           </div>
         </template>
         <template v-else>

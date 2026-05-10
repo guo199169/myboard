@@ -138,6 +138,19 @@
           />
         </div>
         <div
+          v-if="isVisibleGroupProxiesByProvider"
+          class="setting-item"
+        >
+          <div class="setting-item-label">
+            {{ $t('groupProxiesByProvider') }}
+          </div>
+          <input
+            class="toggle"
+            type="checkbox"
+            v-model="groupProxiesByProvider"
+          />
+        </div>
+        <div
           v-if="isVisibleDisplayGlobalByMode"
           class="setting-item"
         >
@@ -267,6 +280,7 @@ import { proxyMap } from '@/store/proxies'
 import {
   customGlobalNode,
   displayGlobalByMode,
+  groupProxiesByProvider,
   independentLatencyTest,
   IPv6test,
   lowLatency,
@@ -301,6 +315,7 @@ const isVisibleGroupTestUrls = useIsSettingVisible(k.groupTestUrls)
 const isVisibleTwoColumnProxyGroup = useIsSettingVisible(k.twoColumnProxyGroup)
 const isVisibleTruncateProxyName = useIsSettingVisible(k.truncateProxyName)
 const isVisibleAutoOptimize = useIsSettingVisible(k.autoOptimize)
+const isVisibleGroupProxiesByProvider = useIsSettingVisible(k.groupProxiesByProvider)
 const isVisibleDisplayGlobalByMode = useIsSettingVisible(k.displayGlobalByMode)
 const isVisibleCustomGlobalNode = useIsSettingVisible(k.customGlobalNode)
 const isVisibleProxyPreviewType = useIsSettingVisible(k.proxyPreviewType)
@@ -337,6 +352,7 @@ const hasVisibleProxyStyleItems = computed(() => {
   return (
     isVisibleTwoColumnProxyGroup.value ||
     isVisibleTruncateProxyName.value ||
+    isVisibleGroupProxiesByProvider.value ||
     isVisibleDisplayGlobalByMode.value ||
     (displayGlobalByMode.value && isSingBox.value && isVisibleCustomGlobalNode.value) ||
     isVisibleProxyPreviewType.value ||
