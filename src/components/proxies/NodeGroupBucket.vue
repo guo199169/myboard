@@ -344,6 +344,54 @@ const collectSectionsByMode = (
       ]
     : []
 }
+const collectSections = (groupName: string, visited = new Set<string>()): Section[] => {
+  if (!groupName || visited.has(groupName)) {
+    return []
+  }
+
+  visited.add(groupName)
+
+  const renderProxies = getRenderProxies(proxyMap.value[groupName]?.all ?? [], groupName)
+  const leafNodes = renderProxies.filter(
+    (proxyName) => !isProxyGroup(proxyName) && belongsToActiveBucket(proxyName),
+  )
+  const childGroups = renderProxies.filter(
+    (proxyName) => isProxyGroup(proxyName) && belongsToActiveBucket(proxyName),
+  )
+  const sections: Section[] = []
+
+  if (leafNodes.length) {
+    const currentProxyName = getNowProxyNodeName(groupName)
+
+    sections.push({
+      groupName,
+      leafNodes,
+      currentProxyName: leafNodes.includes(currentProxyName) ? currentProxyName : '',
+    })
+  }
+
+  const childSections = childGroups.flatMap((childGroupName) =>
+    collectSections(childGroupName, new Set(visited)),
+  )
+
+  if (childSections.length) {
+    sections.push(...childSections)
+  }
+
+  if (sections.length) {
+    return sections
+  }
+
+  return belongsToActiveBucket(groupName)
+    ? [
+        {
+          groupName,
+          leafNodes: [],
+          currentProxyName: getCurrentProxyName(groupName),
+        },
+      ]
+    : []
+}
 type Section = { groupName: string; leafNodes: string[]; currentProxyName: string }
 const sectionsByMode = (mode: 'auto' | 'manual') => {
   const groups = mode === 'auto' ? autoGroups.value : manualGroups.value
@@ -364,7 +412,23 @@ const sectionsByMode = (mode: 'auto' | 'manual') => {
   return result
 }
 const manualSections = computed(() => sectionsByMode('manual'))
-const autoSections = computed(() => sectionsByMode('auto'))
+const autoSections = computed(() => {
+  const result: Section[] = []
+  const seen = new Set<string>()
+
+  orderedGroups.value.forEach((groupName) => {
+    collectSections(groupName).forEach((section) => {
+      if (seen.has(section.groupName)) {
+        return
+      }
+
+      seen.add(section.groupName)
+      result.push(section)
+    })
+  })
+
+  return result
+})
 const showManualSectionLabel = computed(() => manualSections.value.length > 1)
 const showAutoSectionLabel = computed(() => autoSections.value.length > 1)
 watch(
