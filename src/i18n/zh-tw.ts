@@ -59,6 +59,7 @@ const zhTW: LANG_MESSAGE = {
   settings: '設定',
   speedtestUrl: '測速地址',
   speedtestTimeout: '測速超時',
+  autoOptimize: '自動優化節點',
   connectionStyle: '連接樣式',
   card: '卡片',
   table: '表格',

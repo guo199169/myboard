@@ -59,6 +59,7 @@ const ru: LANG_MESSAGE = {
   settings: 'Настройки',
   speedtestUrl: 'URL теста скорости',
   speedtestTimeout: 'Таймаут теста скорости',
+  autoOptimize: 'Авто-оптимизация узлов',
   connectionStyle: 'Стиль подключения',
   card: 'Карточка',
   table: 'Таблица',

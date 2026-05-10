@@ -91,6 +91,19 @@
           />
         </div>
         <GroupTestUrlsSettings v-if="independentLatencyTest && isVisibleGroupTestUrls" />
+        <div
+          v-if="isVisibleAutoOptimize"
+          class="setting-item"
+        >
+          <div class="setting-item-label">
+            {{ $t('autoOptimize') }}
+          </div>
+          <input
+            class="toggle"
+            type="checkbox"
+            v-model="autoOptimize"
+          />
+        </div>
       </div>
     </template>
     <template v-if="hasVisibleProxyStyleItems">
@@ -268,6 +281,7 @@ import {
   speedtestUrl,
   truncateProxyName,
   twoColumnProxyGroup,
+  autoOptimize,
 } from '@/store/settings'
 import { QuestionMarkCircleIcon } from '@heroicons/vue/24/outline'
 import { computed } from 'vue'
@@ -286,6 +300,7 @@ const isVisibleIndependentLatencyTest = useIsSettingVisible(k.independentLatency
 const isVisibleGroupTestUrls = useIsSettingVisible(k.groupTestUrls)
 const isVisibleTwoColumnProxyGroup = useIsSettingVisible(k.twoColumnProxyGroup)
 const isVisibleTruncateProxyName = useIsSettingVisible(k.truncateProxyName)
+const isVisibleAutoOptimize = useIsSettingVisible(k.autoOptimize)
 const isVisibleDisplayGlobalByMode = useIsSettingVisible(k.displayGlobalByMode)
 const isVisibleCustomGlobalNode = useIsSettingVisible(k.customGlobalNode)
 const isVisibleProxyPreviewType = useIsSettingVisible(k.proxyPreviewType)
@@ -313,7 +328,8 @@ const hasVisibleLatencyItems = computed(() => {
     isVisibleMediumLatency.value ||
     isVisibleIpv6Test.value ||
     isVisibleIndependentLatencyTest.value ||
-    (independentLatencyTest.value && isVisibleGroupTestUrls.value)
+    (independentLatencyTest.value && isVisibleGroupTestUrls.value) ||
+    isVisibleAutoOptimize.value
   )
 })
 

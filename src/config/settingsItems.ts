@@ -135,6 +135,7 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
         label: 'twoColumnProxyGroup',
       },
       { key: `${SETTINGS_MENU_KEY.proxies}.truncateProxyName`, label: 'truncateProxyName' },
+      { key: `${SETTINGS_MENU_KEY.proxies}.autoOptimize`, label: 'autoOptimize' },
       {
         key: `${SETTINGS_MENU_KEY.proxies}.displayGlobalByMode`,
         label: 'displayGlobalByMode',

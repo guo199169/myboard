@@ -57,6 +57,7 @@ const en = {
   settings: 'Settings',
   speedtestUrl: 'Speedtest URL',
   speedtestTimeout: 'Speedtest timeout',
+  autoOptimize: 'Auto-Optimize Nodes',
   connectionStyle: 'Connection style',
   card: 'Card',
   table: 'Table',

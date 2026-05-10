@@ -188,6 +188,7 @@ import { useI18n } from 'vue-i18n'
 import CollapseCard from '../common/CollapseCard.vue'
 import ProxiesContent from './ProxiesContent.vue'
 import ProxyGroup from './ProxyGroup.vue'
+import '@/composables/autoOptimize'
 
 const props = defineProps<{
   name: string
