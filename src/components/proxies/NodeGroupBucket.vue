@@ -355,8 +355,8 @@ const manualSections = computed(() => {
 })
 const showManualSectionLabel = computed(() => manualSections.value.length > 1)
 watch(
-  [autoGroups, manualGroups, preferredTypeTab],
-  ([nextAutoGroups, nextManualGroups, nextPreferredTypeTab]) => {
+  [autoGroups, manualGroups],
+  ([nextAutoGroups, nextManualGroups]) => {
     if (!orderedGroups.value.length) {
       activeTypeTab.value = 'auto'
       return
@@ -370,10 +370,6 @@ watch(
     if (!nextManualGroups.length && nextAutoGroups.length) {
       activeTypeTab.value = 'auto'
       return
-    }
-
-    if (!visibleGroups.value.length) {
-      activeTypeTab.value = nextPreferredTypeTab
     }
   },
   { immediate: true },
